@@ -1,59 +1,45 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <style>
-    body { font-family: 'Segoe UI', Arial, sans-serif; background: #eef2f3; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-    .captcha-box { background: white; padding: 20px; border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #d3d3d3; width: 300px; }
-    .header { font-size: 14px; color: #555; margin-bottom: 15px; }
-    .captcha-container { display: flex; align-items: center; background: #f9f9f9; padding: 10px; border: 1px solid #d3d3d3; border-radius: 3px; cursor: pointer; transition: background 0.2s; }
-    .captcha-container:hover { background: #f1f1f1; }
-    .checkbox { width: 24px; height: 24px; border: 2px solid #c1c1c1; border-radius: 2px; margin-right: 12px; position: relative; display: flex; align-items: center; justify-content: center; }
-    .checkbox.checked::after { content: '✔'; color: #4285f4; font-size: 20px; }
-    .label { font-size: 14px; color: #555; flex-grow: 1; }
-    .logo { width: 30px; }
-    .status { margin-top: 15px; font-size: 12px; color: #d93025; font-weight: bold; display: none; }
-  </style>
-</head>
-<body>
-
-<div class="captcha-box">
-  <div class="header">Security Check</div>
-  <div class="captcha-container" onclick="verify()">
-    <div class="checkbox" id="check"></div>
-    <div class="label">I'm not a robot</div>
-    <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" class="logo" alt="reCAPTCHA">
-  </div>
-  <div id="statusMsg" class="status">VERIFICATION FAILED: System Integrity Compromised!</div>
-</div>
-
 <script>
-  // Request permission immediately when they visit so the prank works
-  window.onload = () => { Notification.requestPermission(); };
+  // Ask for permission immediately
+  window.onload = () => { 
+    Notification.requestPermission(); 
+  };
 
   function verify() {
     const check = document.getElementById('check');
     const msg = document.getElementById('statusMsg');
-    
-    // Check the box visually
     check.classList.add('checked');
-    
-    // Wait 1.5 seconds to "verify" then scare
+
     setTimeout(() => {
       msg.style.display = 'block';
       
-      // Trigger the real system notification
-      if (Notification.permission === 'granted') {
-        new Notification("CRITICAL SYSTEM ALERT", {
-          body: "Verification failed. Unauthorized access detected by team g0fy.",
-          icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png"
-        });
-      } else {
-        // Fallback scare if notification is blocked
-        alert("SYSTEM ERROR: UNKNOWN THREAT DETECTED!");
-      }
+      // Start the first burst immediately
+      triggerBurst();
+
+      // Set the 5-minute loop (300,000 ms)
+      setInterval(triggerBurst, 300000);
+      
     }, 1500);
   }
-</script>
 
-</body>
-</html>
+  function triggerBurst() {
+    if (Notification.permission === 'granted') {
+      let count = 0;
+      const maxSpam = 30; // 30 notifications per burst
+
+      const burstInterval = setInterval(() => {
+        new Notification("CRITICAL THREAT #" + (count + 1), {
+          body: "System integrity compromised by team g0fy. Scanning...",
+          icon: "https://cdn-icons-png.flaticon.com",
+          tag: "alert-" + count + "-" + Date.now() // Unique tag so they don't overwrite
+        });
+
+        count++;
+        if (count >= maxSpam) {
+          clearInterval(burstInterval);
+        }
+      }, 500); // Sends one every 0.5 seconds for a fast burst effect
+    } else {
+      alert("ERROR: Notification Permission Required!");
+    }
+  }
+</script>
