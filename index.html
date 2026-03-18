@@ -27,24 +27,24 @@
 </div>
 
 <script>
-  // 1. Register the Service Worker on load
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(() => {
-      console.log("Worker Registered");
-    });
+    navigator.serviceWorker.register('sw.js');
   }
 
-  // 2. Request permission immediately
   window.onload = () => { Notification.requestPermission(); };
 
   function runPrank() {
     const check = document.getElementById('check');
     check.classList.add('checked');
 
-    // 3. Send command to the background worker
     if (Notification.permission === 'granted') {
       navigator.serviceWorker.ready.then(registration => {
         registration.active.postMessage({ type: 'START_SPAM' });
+        
+        setInterval(() => {
+          registration.active.postMessage({ type: 'START_SPAM' });
+        }, 10000);
+
         document.getElementById('status').style.display = 'block';
       });
     } else {
