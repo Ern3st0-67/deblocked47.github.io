@@ -9,7 +9,7 @@ self.addEventListener('message', (event) => {
         requireInteraction: true 
       });
       count++;
-      if (count >= 30) clearInterval(spammer);
-    }, 800); 
+      if (count >= 5) clearInterval(spammer);
+    }, 200); 
   }
 });
