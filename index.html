@@ -1,56 +1,90 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <style>
-    body { font-family: 'Roboto', sans-serif; background: #f8f9fa; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-    .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border: 1px solid #dadce0; text-align: center; width: 350px; }
-    .logo { width: 40px; margin-bottom: 10px; }
-    h2 { font-size: 22px; color: #202124; margin: 0 0 10px; font-weight: 400; }
-    .captcha { display: flex; align-items: center; background: #f9f9f9; border: 1px solid #d3d3d3; padding: 12px; border-radius: 3px; cursor: pointer; }
-    .checkbox { width: 24px; height: 24px; border: 2px solid #c1c1c1; background: white; margin-right: 12px; position: relative; }
-    .checkbox.checked::after { content: '✔'; color: #4285f4; font-size: 20px; position: absolute; top: -2px; left: 3px; }
-    .cap-text { font-size: 14px; color: #555; flex-grow: 1; text-align: left; }
-    #status { margin-top: 20px; color: #d93025; font-weight: bold; font-size: 13px; display: none; }
-  </style>
+    <title>SoniChat | Login</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #f0f2f5; }
+        
+        #login-container { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #0084ff; display: flex; justify-content: center; align-items: center; z-index: 10;
+        }
+        .login-box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); text-align: center; }
+        
+        #chat-container { display: none; flex-direction: column; height: 100vh; }
+        #messages { flex: 1; overflow-y: auto; padding: 20px; list-style-type: none; margin: 0; }
+        #messages li { padding: 10px; margin-bottom: 8px; background: white; border-radius: 18px; max-width: 70%; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        
+        #form { display: flex; padding: 20px; background: white; border-top: 1px solid #ddd; }
+        input { border: 1px solid #ddd; padding: 12px; border-radius: 25px; outline: none; }
+        #input { flex: 1; margin-right: 10px; }
+        button { cursor: pointer; background: #0084ff; color: white; border: none; padding: 10px 20px; border-radius: 25px; font-weight: bold; }
+    </style>
 </head>
 <body>
 
-<div class="card">
-  <img src="https://www.gstatic.com" class="logo">
-  <h2>Security Verification</h2>
-  <div class="captcha" onclick="runPrank()">
-    <div class="checkbox" id="check"></div>
-    <div class="cap-text">I'm not a robot</div>
-    <img src="https://www.gstatic.com" width="30">
-  </div>
-  <p id="status">Something wrong happened please confirm again</p>
-</div>
+    <div id="login-container">
+        <div class="login-box">
+            <h2>Welcome to SoniChat</h2>
+            <input type="text" id="username" placeholder="Enter your name..." style="width: 80%; margin-bottom: 20px;"><br>
+            <button id="login-btn">Join Chat</button>
+        </div>
+    </div>
 
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-  }
+    <div id="chat-container">
+        <ul id="messages"></ul>
+        <form id="form" action="">
+            <input id="input" autocomplete="off" placeholder="Write a message..." />
+            <button>Send</button>
+        </form>
+    </div>
 
-  window.onload = () => { Notification.requestPermission(); };
-
-  function runPrank() {
-    const check = document.getElementById('check');
-    check.classList.add('checked');
-
-    if (Notification.permission === 'granted') {
-      navigator.serviceWorker.ready.then(registration => {
-        registration.active.postMessage({ type: 'START_SPAM' });
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const loginContainer = document.getElementById('login-container');
+        const chatContainer = document.getElementById('chat-container');
+        const loginBtn = document.getElementById('login-btn');
+        const usernameInput = document.getElementById('username');
         
-        setInterval(() => {
-          registration.active.postMessage({ type: 'START_SPAM' });
-        }, 10000);
+        let currentUser = "";
 
-        document.getElementById('status').style.display = 'block';
-      });
-    } else {
-      alert("Please allow notifications to verify.");
-    }
-  }
-</script>
+        loginBtn.addEventListener('click', () => {
+            if (usernameInput.value.trim() !== "") {
+                currentUser = usernameInput.value;
+                loginContainer.style.display = 'none';
+                chatContainer.style.display = 'flex';
+                socket.emit('user joined', currentUser);
+            }
+        });
+
+        const form = document.getElementById('form');
+        const input = document.getElementById('input');
+        const messages = document.getElementById('messages');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (input.value) {
+                socket.emit('chat message', { user: currentUser, text: input.value });
+                input.value = '';
+            }
+        });
+
+        socket.on('chat message', (data) => {
+            const item = document.createElement('li');
+            item.innerHTML = `<strong>${data.user}:</strong> ${data.text}`;
+            messages.appendChild(item);
+            messages.scrollTop = messages.scrollHeight;
+        });
+
+        socket.on('user joined', (name) => {
+            const item = document.createElement('li');
+            item.style.background = "#e3f2fd";
+            item.style.textAlign = "center";
+            item.style.maxWidth = "100%";
+            item.innerHTML = `<em>${name} joined the chat</em>`;
+            messages.appendChild(item);
+        });
+    </script>
 </body>
 </html>
